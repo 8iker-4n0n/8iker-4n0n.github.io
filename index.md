@@ -12,44 +12,16 @@ If I have made any mistakes, or you are able to offer advise or improvements, pl
 
 ## Research Areas
 
-- Malware Analysis
 - Incident Response
-- Threat Hunting
-- Reverse Engineering
-- Detection Engineering
-- Digital Forensics
-- YARA Rules
-- Sigma Rules
-
----
-
-## Latest Articles
-
-*Coming soon.*
 
 ---
 
 ## Categories
 
-### Malware Analysis
-
-Technical analysis of malware samples encountered during investigations.
 
 ### Incident Response
 
 Real-world case studies covering detection, containment, eradication, recovery, and lessons learned.
-
-### Threat Hunting
-
-Threat hunting methodologies, hypotheses, and detection strategies.
-
-### Detection Engineering
-
-YARA, Sigma, IOC development, and detection logic.
-
-### Reverse Engineering
-
-Static and dynamic analysis of malicious binaries.
 
 ---
 
@@ -63,10 +35,7 @@ Any malware samples, indicators of compromise (IOCs), detection rules, or techni
 
 ## Contact
 
-- GitHub: https://github.com/<your_username>
-- Email: <your_email>
+- GitHub: https://github.com/8iker-4n0n
+- Email: 8iker_4n0n.mahogany929@passinbox.com
 
----
-
-*Last updated: June 2026*
 ```
