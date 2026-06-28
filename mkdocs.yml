@@ -1,0 +1,22 @@
+site_name: 8iker_4n0n Security Research
+site_description: Cybersecurity Research
+site_author: 8iker_4n0n
+
+theme:
+  name: material
+  palette:
+    scheme: slate
+    primary: deep orange
+    accent: orange
+  features:
+    - navigation.tabs
+    - navigation.indexes
+    - content.code.copy
+    - search.highlight
+
+nav:
+  - Home: index.md
+  - IR Reports:
+    - ir-reports/2026-06-27-polymorphic-webshell-ir.md
+  - Malware Analysis:
+    - malware-analysis/2026-06-27-polymorphic-webshell-analysis.md
