@@ -13,8 +13,8 @@ If I have made any mistakes, or you are able to offer advice or improvements, pl
 
 - Incident Response
 - Malware Analysis
-- CVE / Vulnerability Writeups
-- Tools
+- CVE / Vulnerability Writeups (FUTURE)
+- Tools (FUTURE)
 
 ---
 
