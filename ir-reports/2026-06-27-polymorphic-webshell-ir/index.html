@@ -516,10 +516,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#timeline" class="md-nav__link">
+  <a href="#malicious-scripts-truncated-list" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Timeline
+        Malicious Scripts (Truncated List)
       
     </span>
   </a>
@@ -527,10 +527,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#malicious-scripts-truncated-list" class="md-nav__link">
+  <a href="#attacker-base-directory" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Malicious Scripts (Truncated List)
+        Attacker Base Directory
       
     </span>
   </a>
@@ -578,6 +578,62 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Remediation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#custom-yara-rules-using-yara-x" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom YARA Rules (Using Yara-X)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Custom YARA Rules (Using Yara-X)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#detect_anonfoxphpyar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Detect_AnonFoxPHP.yar
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#detect_obfuscatedcodephp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Detect_ObfuscatedCodePHP
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#detect_gsocket_shell" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Detect_GSocket_Shell
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -812,10 +868,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#timeline" class="md-nav__link">
+  <a href="#malicious-scripts-truncated-list" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Timeline
+        Malicious Scripts (Truncated List)
       
     </span>
   </a>
@@ -823,10 +879,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#malicious-scripts-truncated-list" class="md-nav__link">
+  <a href="#attacker-base-directory" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Malicious Scripts (Truncated List)
+        Attacker Base Directory
       
     </span>
   </a>
@@ -875,6 +931,62 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Remediation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#custom-yara-rules-using-yara-x" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom YARA Rules (Using Yara-X)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Custom YARA Rules (Using Yara-X)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#detect_anonfoxphpyar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Detect_AnonFoxPHP.yar
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#detect_obfuscatedcodephp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Detect_ObfuscatedCodePHP
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#detect_gsocket_shell" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Detect_GSocket_Shell
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -909,7 +1021,16 @@
 <h2 id="overview">Overview</h2>
 <p>The following report is a condensed write-up regarding an incident response on a compromised server I was tasked with securing after the fact.
 A shared-hosting web server managed via cPanel/WHM, hosting multiple WordPress sites across several accounts, was identified as compromised. Indicators point to a multi-account breach involving server-side web shells and large-scale content injection.  </p>
-<p>The malware found was not detected by using any AV scans or security plugins, but through manual investigation and regex. All connections to the compromised server was done through my own private VPN connection to hide my own public IP address. I intentionally exclude some discoveries from</p>
+<p>The malware found was not detected by using any AV scans or security plugins, but through manual investigation and regex. 
+All connections to the compromised server was done through my own private VPN connection to hide my own public IP address. 
+I intentionally exclude some discoveries from this write-up but I will share the most interesting ones. </p>
+<p>Some of the findings include:
+- Polymorphic instances of Anonymous Fox suite
+- GSocket RAT (Remote Access Trojan)
+- </p>
+<p>Although the most interesting malware I found was the polymorphic Anonymous Fox instances, I did also find a lot of other malware.
+Honestly, it looked like this web server was compromised by more than one group of attackers.
+I state this as the patterns and languages varied amongst the samples I found.</p>
 <p>The investigation prioritised, in order: evidence preservation, assessment of live attacker activity, containment, and root-cause identification.</p>
 <p>Shout out to the following researchers who's content made this possible:<br />
 <strong>John Strand, Low Level, Hack The Clown, John Hammond, Nahamsec, Tomnomnom</strong></p>
@@ -1060,50 +1181,26 @@ done
 </tbody>
 </table>
 <hr />
-<h2 id="timeline">Timeline</h2>
-<table>
-<thead>
-<tr>
-<th>Time (UTC)</th>
-<th>Event</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>2026-06-19 19:28</td>
-<td>Analysis of WHM active processes and network logs</td>
-</tr>
-<tr>
-<td>2026-06-19 20:47</td>
-<td>Discovery of HTTP traffic anomalies</td>
-</tr>
-<tr>
-<td>2026-06-19 21:19</td>
-<td>Discovery of most requested file via HTTP requests</td>
-</tr>
-<tr>
-<td>2026-06-19 23:45</td>
-<td>Discovery of polymorphic shell</td>
-</tr>
-<tr>
-<td>2026-06-20 00:33</td>
-<td>Quarantine, archival and removing of all malware found</td>
-</tr>
-<tr>
-<td>2026-06-20 01:54</td>
-<td>Investigation stopped, report sent to client</td>
-</tr>
-</tbody>
-</table>
-<hr />
 <h2 id="malicious-scripts-truncated-list">Malicious Scripts (Truncated List)</h2>
 <ul>
 <li><code>/home/REDACTED/public_html/well-known/pki-validation/e/e/f/c/dphgrvcoqms.php</code></li>
 <li><code>/home/REDACTED/public_html/well-known/pki-validation/e/e/f/c/ywqdmhuantx.php</code></li>
 <li><code>/home/REDACTED/public_html/wp-content/uploads/gfkijlv/ptjqgki/bvcegip/index.php</code></li>
-<li><code>/home/REDACTED/public_html/wp-content/uploads/gfkijlv/ptjqgki/bvcegip/t.php</code></li>
-<li><code>/home/REDACTED/public_html/wp-content/uploads/vexmoyr/1tqbuiz/vcqfbyx/fox.php</code></li>
-<li><code>/home/REDACTED/public_html/wp-content/uploads/vexmoyr/1tqbuiz/vcqfbyx/index.php</code></li>
+<li><code>/home/REDACTED/public_html/wp-content/uploads/gfkijlv/ptjqgki/bvcegip/t.php</code>  </li>
+<li><code>/home/REDACTED/public_html/wp-content/uploads/vexmoyr/1tqbuiz/vcqfbyx/fox.php</code>  </li>
+<li><code>/home/REDACTED/public_html/wp-content/uploads/vexmoyr/1tqbuiz/vcqfbyx/index.php</code>  </li>
+<li><code>/home/REDACTED/public_html/mxrlrlfl.php</code>  </li>
+<li><code>/home/REDACTED/public_html/unZIPpeRnrk.php</code>  </li>
+<li><code>/home/REDACTED/public_html/zlpzoqdh.php</code>  </li>
+<li><code>/home/REDACTED/public_html/cvtyotug.php</code>  </li>
+<li><code>/home/REDACTED/cpmove.psql.1311583989/ewoghma/mwzb1nf/dsgxoqa/index.php</code></li>
+<li><code>/home/REDACTED/public_html/.hkp_532f2ab5.php</code></li>
+</ul>
+<hr />
+<h2 id="attacker-base-directory">Attacker Base Directory</h2>
+<ul>
+<li><code>/home/REDACTED/public_html/.F0x</code></li>
+<li><code>/home/REDACTED/public_html/.Fox</code></li>
 </ul>
 <hr />
 <h2 id="attacker-ips">Attacker IPs</h2>
@@ -1236,7 +1333,56 @@ done
 <li>Changing of all passwords for user accounts, databases and administrative accounts</li>
 <li>Disabled C Compiler access - this was enabled for unpriviledged users - WHM setting</li>
 <li>Shell fork bomb protection enabled - WHM setting</li>
+<li>Wrote a custom YARA rule</li>
 </ul>
+<h3 id="custom-yara-rules-using-yara-x">Custom YARA Rules (Using Yara-X)</h3>
+<p>Should someone be able to improve on the YARA rules below, please let me know.
+I built my own YARA rule for what I found because I didn't yet find anything for Anonymous Fox, but if there is something, again let me know.</p>
+<h5 id="detect_anonfoxphpyar">Detect_AnonFoxPHP.yar</h5>
+<pre><code class="language-yara">rule Detect_AnonFoxPHP {
+    meta:
+        description = &quot;PHP Compressed Anon Fox Payload&quot;
+        author = &quot;8iker_4n0n&quot;
+        severity = &quot;Critical&quot;
+        reference_pattern = &quot;( __FILE__ ),-[0-9]+&quot;
+
+    strings:
+        $pattern = /\( *__FILE__ *\),-[0-9]+/ ascii
+        $zlib1 = { 78 01 }
+        $zlib2 = { 78 9C }
+        $zlib3 = { 78 DA }
+
+    condition:
+        uint8(0) == 0x3C and uint8(1) == 0x3F and
+        $pattern and 
+        $zlib1 in (@pattern..@pattern + 1000) or
+        $zlib2 in (@pattern..@pattern + 1000) or
+        $zlib3 in (@pattern..@pattern + 1000)
+}
+</code></pre>
+<h5 id="detect_obfuscatedcodephp">Detect_ObfuscatedCodePHP</h5>
+<pre><code class="language-yara">rule Detect_ObfuscatedCode {
+    meta:
+        author      = &quot;8iker_4n0n&quot;
+        description = &quot;Find common concatenation obfuscated code&quot;
+    strings:
+        $pattern = /\$[A-Za-z0-9_]{1,32}\s*=\s*('[A-Za-z0-9_]+'\s*\.\s*){1,}'[A-Za-z0-9_]+'\s*/
+    condition:
+        $pattern
+}
+</code></pre>
+<h5 id="detect_gsocket_shell">Detect_GSocket_Shell</h5>
+<pre><code class="language-yara">rule Detect_GSocket_Webshell {
+    meta:
+        author      = &quot;8iker_4n0n&quot;
+        description = &quot;Detect possible GSocket Webshell&quot;
+        severity = &quot;Critical&quot;
+    strings:
+        $pattern = &quot;/usr/bin/pkill -0&quot; base64
+    condition:
+        $pattern
+}
+</code></pre>
 <hr />
 <h2 id="references">References</h2>
 <ul>
