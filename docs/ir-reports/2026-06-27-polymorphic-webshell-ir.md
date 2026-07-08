@@ -48,7 +48,18 @@ tags:
 The following report is a condensed write-up regarding an incident response on a compromised server I was tasked with securing after the fact.
 A shared-hosting web server managed via cPanel/WHM, hosting multiple WordPress sites across several accounts, was identified as compromised. Indicators point to a multi-account breach involving server-side web shells and large-scale content injection.  
 
-The malware found was not detected by using any AV scans or security plugins, but through manual investigation and regex. All connections to the compromised server was done through my own private VPN connection to hide my own public IP address. I intentionally exclude some discoveries from
+The malware found was not detected by using any AV scans or security plugins, but through manual investigation and regex. 
+All connections to the compromised server was done through my own private VPN connection to hide my own public IP address. 
+I intentionally exclude some discoveries from this write-up but I will share the most interesting ones. 
+
+Some of the findings include:
+- Polymorphic instances of Anonymous Fox suite
+- GSocket RAT (Remote Access Trojan)
+- 
+
+Although the most interesting malware I found was the polymorphic Anonymous Fox instances, I did also find a lot of other malware.
+Honestly, it looked like this web server was compromised by more than one group of attackers.
+I state this as the patterns and languages varied amongst the samples I found.
 
 The investigation prioritised, in order: evidence preservation, assessment of live attacker activity, containment, and root-cause identification.
 
@@ -212,26 +223,25 @@ If anything seen in this blog is incorrect, can be improved or you would like to
 
 ---
 
-## Timeline
-
-| Time (UTC) | Event |
-|---|---|
-| 2026-06-19 19:28 | Analysis of WHM active processes and network logs |
-| 2026-06-19 20:47 | Discovery of HTTP traffic anomalies |
-| 2026-06-19 21:19 | Discovery of most requested file via HTTP requests |
-| 2026-06-19 23:45 | Discovery of polymorphic shell |
-| 2026-06-20 00:33 | Quarantine, archival and removing of all malware found |
-| 2026-06-20 01:54 | Investigation stopped, report sent to client |
-
----
-
 ## Malicious Scripts (Truncated List)
 - `/home/REDACTED/public_html/well-known/pki-validation/e/e/f/c/dphgrvcoqms.php`
 - `/home/REDACTED/public_html/well-known/pki-validation/e/e/f/c/ywqdmhuantx.php`
 - `/home/REDACTED/public_html/wp-content/uploads/gfkijlv/ptjqgki/bvcegip/index.php`
-- `/home/REDACTED/public_html/wp-content/uploads/gfkijlv/ptjqgki/bvcegip/t.php`
-- `/home/REDACTED/public_html/wp-content/uploads/vexmoyr/1tqbuiz/vcqfbyx/fox.php`
-- `/home/REDACTED/public_html/wp-content/uploads/vexmoyr/1tqbuiz/vcqfbyx/index.php`
+- `/home/REDACTED/public_html/wp-content/uploads/gfkijlv/ptjqgki/bvcegip/t.php`  
+- `/home/REDACTED/public_html/wp-content/uploads/vexmoyr/1tqbuiz/vcqfbyx/fox.php`  
+- `/home/REDACTED/public_html/wp-content/uploads/vexmoyr/1tqbuiz/vcqfbyx/index.php`  
+- `/home/REDACTED/public_html/mxrlrlfl.php`  
+- `/home/REDACTED/public_html/unZIPpeRnrk.php`  
+- `/home/REDACTED/public_html/zlpzoqdh.php`  
+- `/home/REDACTED/public_html/cvtyotug.php`  
+- `/home/REDACTED/cpmove.psql.1311583989/ewoghma/mwzb1nf/dsgxoqa/index.php`
+- `/home/REDACTED/public_html/.hkp_532f2ab5.php`
+
+---
+
+## Attacker Base Directory
+- `/home/REDACTED/public_html/.F0x`
+- `/home/REDACTED/public_html/.Fox`
 
 ---
 
@@ -304,6 +314,62 @@ If anything seen in this blog is incorrect, can be improved or you would like to
 - Changing of all passwords for user accounts, databases and administrative accounts
 - Disabled C Compiler access - this was enabled for unpriviledged users - WHM setting
 - Shell fork bomb protection enabled - WHM setting
+- Wrote a custom YARA rule
+
+### Custom YARA Rules (Using Yara-X)
+Should someone be able to improve on the YARA rules below, please let me know.
+I built my own YARA rule for what I found because I didn't yet find anything for Anonymous Fox, but if there is something, again let me know.
+
+##### Detect_AnonFoxPHP.yar
+```yara
+rule Detect_AnonFoxPHP {
+	meta:
+		description = "PHP Compressed Anon Fox Payload"
+		author = "8iker_4n0n"
+		severity = "Critical"
+		reference_pattern = "( __FILE__ ),-[0-9]+"
+
+	strings:
+		$pattern = /\( *__FILE__ *\),-[0-9]+/ ascii
+		$zlib1 = { 78 01 }
+		$zlib2 = { 78 9C }
+		$zlib3 = { 78 DA }
+
+	condition:
+		uint8(0) == 0x3C and uint8(1) == 0x3F and
+		$pattern and 
+		$zlib1 in (@pattern..@pattern + 1000) or
+		$zlib2 in (@pattern..@pattern + 1000) or
+		$zlib3 in (@pattern..@pattern + 1000)
+}
+```
+
+##### Detect_ObfuscatedCodePHP
+```yara
+rule Detect_ObfuscatedCode {
+    meta:
+        author      = "8iker_4n0n"
+        description = "Find common concatenation obfuscated code"
+    strings:
+        $pattern = /\$[A-Za-z0-9_]{1,32}\s*=\s*('[A-Za-z0-9_]+'\s*\.\s*){1,}'[A-Za-z0-9_]+'\s*/
+    condition:
+        $pattern
+}
+```
+
+##### Detect_GSocket_Shell
+```yara
+rule Detect_GSocket_Webshell {
+    meta:
+        author      = "8iker_4n0n"
+        description = "Detect possible GSocket Webshell"
+        severity = "Critical"
+    strings:
+        $pattern = "/usr/bin/pkill -0" base64
+    condition:
+        $pattern
+}
+```
 
 ---
 
