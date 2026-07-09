@@ -1274,7 +1274,7 @@ lsof -i -P
 Now I bought myself some time to dig... and dig I did :D</p>
 <hr />
 <h2 id="finding-persistence">Finding Persistence</h2>
-<p>I checked the active connections again and saw that the only active connection was mine and the hosting provider. I then explained to Claude my findings and actions, and prompted it to help give me places to look for any malicious scripts based on the current evidences.</p>
+<p>I checked the active connections again and saw that the only active connection were mine and the hosting provider. I then explained to Claude my findings and actions, and prompted it to help give me places to look for any malicious scripts based on the current evidences.</p>
 <p>The focus then turned to the /home directory and Claude gave me the following line:</p>
 <pre><code class="language-bash">stat /home/user/public_html/shell.php
 </code></pre>
@@ -1295,8 +1295,8 @@ $JIzk='file_ge'.'t'.'content'.'s';$YrdE='gzu'.'ncomp'.'ress';$esyt='s'.'ubs'.'tr
 <strong><code>/home/REDACTED/public_html/modules/mod_login/elhywdo/cuywi1b/bwsax1e/shell.php</code></strong><br />
 <strong><code>/home/REDACTED/public_html/images/sfvratq/heyxoca/pvynrqk/shell.php</code></strong>  </p>
 <p>In each of them I saw the obfuscation was slightly different and the variable names were completely different everytime but still easy enough to read but one thing stood out amongst them all <strong><code>(__FILE__),-OFFSET</code></strong><br />
-I then asked Claude to give me the best way to find all of these files across the file system using this regex <strong><code>\( __FILE__ \),-[0-9]+</code></strong> 
-In hide sight, this was not the best way to find them but it worked.</p>
+I then asked Claude to give me the best way to find all of these files across the file system using this regex <strong><code>\( __FILE__ \),-[0-9]+</code></strong> </p>
+<p>In hind sight, this was not the best way to find them but it worked.</p>
 <pre><code class="language-bash"># Find all the php files with this pattern in them under first all the webroot folders then the filesystem
 grep -rnP '\( __FILE__ \),-[0-9]+' --include=&quot;*.php&quot; /home/*/public_html/ &gt;&gt; possible_malware.txt
 grep -rnP '\( __FILE__ \),-[0-9]+' --include=&quot;*.php&quot; / &gt;&gt; possible_malware.txt
