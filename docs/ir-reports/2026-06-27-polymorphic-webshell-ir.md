@@ -15,6 +15,10 @@ mitre_tags:
   - T1095
   - T1571
   - T1070.004
+  - T1552.001
+  - T1018
+  - T1219
+  - T1105
 ioc_summary:
   - "REGEX: '\\( __FILE__ \\),-[0-9]+'"
   - "Path: /home/REDACTED/public_html/yichka1/urystbv/fcbdgrl/index.php"
@@ -39,6 +43,13 @@ tags:
   - xmlrpc.php
   - phising
   - redirect
+  - T1552.001
+  - T1018
+  - T1219
+  - T1105
+  - anonymous-fox
+  - gsocket
+  - credential-harvesting
 ---
 
 # Polymorphic Web Shell — Incident Response
@@ -50,12 +61,15 @@ A shared-hosting web server managed via cPanel/WHM, hosting multiple WordPress s
 
 The malware found was not detected by using any AV scans or security plugins, but through manual investigation and regex. 
 All connections to the compromised server was done through my own private VPN connection to hide my own public IP address. 
-I intentionally exclude some discoveries from this write-up but I will share the most interesting ones. 
+I intentionally excluded some discoveries from this write-up for brevity, this write-up but I will share the most interesting ones. 
 
 Some of the findings include:
 - Polymorphic instances of Anonymous Fox suite
-- GSocket RAT (Remote Access Trojan)
-- 
+- GSocket RAT (Remote Access Trojan) binary
+- Corrupted php.ini files
+- Corrupted .htaccess files
+- Web Shells with GET parameters for shell execution
+- Emails sent by the attackers through the mail server
 
 Although the most interesting malware I found was the polymorphic Anonymous Fox instances, I did also find a lot of other malware.
 Honestly, it looked like this web server was compromised by more than one group of attackers.
@@ -82,9 +96,9 @@ I intentionally left out some parts of this investigation to prevent a bloated b
 ## Log analysis
 The WHM management interface allowed me to view active processes and network logs. The active processes and first view logs did not reveal anything. When looking through the `Daily Process Log` in WHM, I saw a sudden spike (23%) in the previous day's (June 18 2026) memory usage. This memory usage came from the `httpd` process. Now 23% is not much for a web server but when compared to the current day (0.3%) it seemed very odd.
 
-I then looked at the bandwidth usage for each month by site. This then revealed a massive amount of data usage for about 7 sites. As the sites are not hosting video content or image downloads, this seemed strange so I jumped back many months until I saw a drop in bandwidth usage. I discovered that prior to February 2026, the average bandwidth usage was between **7GB** to **9GB** but in Feburary there was an additional 20GB. Looking through the other months, the maximum usage for one particular site was **32.26GB**.
+I then looked at the bandwidth usage for each month by site. This then revealed a massive amount of data usage for about 7 sites. As the sites are not hosting video content or image downloads, this seemed strange so I jumped back many months until I saw a drop in bandwidth usage. I discovered that prior to February 2026, the average bandwidth usage was between **7GB** to **9GB** but in February there was an additional 20GB. Looking through the other months, the maximum usage for one particular site was **32.26GB**.
 
-Upon further investigation, I found that the most targeted file in the requests sent was `xmlrpc.php`, about 100,000+ requests within a 3 month span. I remember from the past this this was a vulnerable file in the past. I did a quick search and discovered that this legacy file has been used in past exploits to brute force user accounts. This is what I believe was used to brute-force user accounts and gain access to file upload capabilities through an administrator account.
+Upon further investigation, I found that the most targeted file in the requests sent was `xmlrpc.php`, about 100,000+ requests within a 3 month span. I remember from the past that this was a known vulnerable file. I did a quick search and discovered that this legacy file has been used in past exploits to brute force user accounts. This is what I believe was used to brute-force user accounts and gain access to file upload capabilities through an administrator account.
 
 ---
 
@@ -291,6 +305,10 @@ If anything seen in this blog is incorrect, can be improved or you would like to
 | Defense Evasion | T1070.004 | Indicator Removal on Host: File Deletion | The malware compiled and deleted it's source code |
 | Discovery | T1049 | System Network Connections Discovery | Mapped out active network interfaces and connections |
 | Discovery | T1016 | System Network Configuration Discovery | Identified listening services and established connections |
+| Discovery | T1018 | Remote System Discovery | DNS zone enumeration via `/etc/named.conf` mapped all domains on shared host |
+| Credential Access | T1552.001 | Unsecured Credentials: Credentials In Files | Malware harvested DB credentials from CMS config files across accounts |
+| Command and Control | T1219 | Remote Access Software | GSocket RAT binary dropped for persistent remote access |
+| Command and Control | T1105 | Ingress Tool Transfer | GSocket RAT binary transferred to compromised host filesystem |
 
 
 ---
@@ -387,4 +405,8 @@ rule Detect_GSocket_Webshell {
 - [MITRE T1095 — Non-Application Layer Protocol](https://attack.mitre.org/techniques/T1095/)
 - [MITRE T1571 — Non-Standard Port](https://attack.mitre.org/techniques/T1571/)
 - [MITRE T1070.004 — Indicator Removal: File Deletion](https://attack.mitre.org/techniques/T1070/004/)
+- [MITRE T1552.001 — Unsecured Credentials: Credentials In Files](https://attack.mitre.org/techniques/T1552/001/)
+- [MITRE T1018 — Remote System Discovery](https://attack.mitre.org/techniques/T1018/)
+- [MITRE T1219 — Remote Access Software](https://attack.mitre.org/techniques/T1219/)
+- [MITRE T1105 — Ingress Tool Transfer](https://attack.mitre.org/techniques/T1105/)
 - [Companion Malware Analysis](../malware-analysis/2026-06-27-polymorphic-webshell-analysis.md)
