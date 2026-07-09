@@ -568,6 +568,67 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Indicators of Compromise">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#network" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Network
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#file-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File System
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#web-application-database" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Web Application / Database
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#behavioral" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Behavioral
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yara-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        YARA Rule
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -632,6 +693,17 @@
     <span class="md-ellipsis">
       
         Detect_GSocket_Shell
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#detect_ushortlinks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Detect_UShortLinks
       
     </span>
   </a>
@@ -931,6 +1003,67 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Indicators of Compromise">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#network" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Network
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#file-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File System
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#web-application-database" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Web Application / Database
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#behavioral" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Behavioral
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yara-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        YARA Rule
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -995,6 +1128,17 @@
     <span class="md-ellipsis">
       
         Detect_GSocket_Shell
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#detect_ushortlinks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Detect_UShortLinks
       
     </span>
   </a>
@@ -1364,14 +1508,168 @@ done
 </table>
 <hr />
 <h2 id="indicators-of-compromise">Indicators of Compromise</h2>
-<ul>
-<li>Foreign IP connecting to SSH shell</li>
-<li>216 polymorphic PHP web shells located across the hosted account web roots.</li>
-<li>Database content injection: WordPress post rows seeded with redirect payloads pointing to ushort.* domains. Each infected row observed to carry two payload variants — a <code>&lt;meta http-equiv="refresh"&gt; redirect and a &lt;script&gt;window.location.href&gt;</code> redirect.</li>
-<li>Removed injected redirects in 17560 PHP files found on disk via bash script.</li>
-<li>Injection scale on one account (REDACTED) measured at 818 infected post rows (1,636 total payload strings, i.e. both variants per row).</li>
-<li>Established connections to port 111 RPC from foreign addresses (Linode instances) </li>
-</ul>
+<p>!!! danger "High Confidence"
+    The regex pattern and redirect domain family are the most reliable cross-environment detections. Attacker IPs are cloud/VPS infrastructure and will rotate.</p>
+<h3 id="network">Network</h3>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Value</th>
+<th>Context</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Domain pattern</td>
+<td><code>ushort\.[a-z]+</code></td>
+<td>Phishing redirect destination — TLDs observed: <code>.dev</code>, <code>.today</code>, <code>.observer</code>, <code>.company</code>, <code>.com</code></td>
+</tr>
+<tr>
+<td>Port</td>
+<td><code>111</code> (RPC)</td>
+<td>Active ESTABLISHED connections to foreign IPs observed on this port</td>
+</tr>
+<tr>
+<td>Infrastructure</td>
+<td>Linode ASN (multiple IPs)</td>
+<td>Attacker C2 relay nodes — see <a href="#attacker-ips">Attacker IPs</a></td>
+</tr>
+<tr>
+<td>C2</td>
+<td><code>https://t.me/F0x_CyberSecurity</code></td>
+<td>Telegram channel embedded in Anonymous Fox malware dictionary</td>
+</tr>
+<tr>
+<td>C2 URL</td>
+<td><code>https://u-fox.link</code></td>
+<td>Anonymous Fox panel URL found in malware strings</td>
+</tr>
+</tbody>
+</table>
+<h3 id="file-system">File System</h3>
+<p>!!! note
+    Hash-based detection is unreliable — the polymorphic shells rewrite themselves on each execution. Use the regex pattern and structural markers instead.</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Value</th>
+<th>Context</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Regex</td>
+<td><code>\( __FILE__ \),-[0-9]+</code></td>
+<td>Detects all variants of the self-referencing payload loader</td>
+</tr>
+<tr>
+<td>Path pattern</td>
+<td><code>/public_html/[a-z]{6,8}/[a-z]{6,8}/[a-z]{6,8}/(index\|shell\|tool).php</code></td>
+<td>Randomly nested 3-level directories with generic filenames</td>
+</tr>
+<tr>
+<td>File</td>
+<td><code>.htaccess</code> modified</td>
+<td><code>AddType text/plain .php</code> and <code>Options Indexes FollowSymLinks</code> injected</td>
+</tr>
+<tr>
+<td>File</td>
+<td><code>php.ini</code> modified</td>
+<td><code>safe_mode = Off</code>, <code>disable_functions = NONE</code>, <code>open_basedir = OFF</code> injected</td>
+</tr>
+<tr>
+<td>Directory</td>
+<td><code>.F0x/</code></td>
+<td>Attacker staging directory — see <a href="#attacker-base-directory">Attacker Base Directory</a></td>
+</tr>
+<tr>
+<td>Marker file</td>
+<td><code>foxnoindex.htm</code> / <code>foxnoindex.html</code></td>
+<td>Anonymous Fox custom <code>DirectoryIndex</code> marker</td>
+</tr>
+</tbody>
+</table>
+<p>??? "Detection Commands"
+    ```bash
+    # Find all shell variants across web roots
+    grep -rnP '( <strong>FILE</strong> ),-[0-9]+' --include="<em>.php" /home/</em>/public_html/</p>
+<pre><code># Find corrupted .htaccess files
+grep -rl "AddType text/plain .php" /home/*/public_html/
+
+# Find corrupted php.ini files
+grep -rl "disable_functions = NONE" /home/*/public_html/
+```
+</code></pre>
+<h3 id="web-application-database">Web Application / Database</h3>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Value</th>
+<th>Context</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DB payload — meta</td>
+<td><code>&lt;meta http-equiv="refresh" content="0; url=https?://ushort\.[a-z]+/..."&gt;</code></td>
+<td>Injected into <code>wp_posts.post_content</code> and <code>wp_options.home</code></td>
+</tr>
+<tr>
+<td>DB payload — script</td>
+<td><code>&lt;script&gt;window.location.href = "https?://ushort\.[a-z]+/...";&lt;/script&gt;</code></td>
+<td>Second variant — both present per infected row</td>
+</tr>
+<tr>
+<td>Impact scale</td>
+<td>216 PHP shells · 17,560 infected PHP files · 818+ infected DB rows on one account alone</td>
+<td>Scale across 30+ hosted WordPress sites</td>
+</tr>
+</tbody>
+</table>
+<p>??? "Detection Query (WP-CLI)"
+    ```bash
+    # Count infected post rows
+    wp db query "SELECT COUNT(*) FROM wp_posts WHERE post_content LIKE '%ushort.%'" --path=/path/to/wp</p>
+<pre><code># Check if wp_options home is hijacked
+wp option get home --path=/path/to/wp
+```
+</code></pre>
+<h3 id="behavioral">Behavioral</h3>
+<table>
+<thead>
+<tr>
+<th>Signal</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bandwidth spike</td>
+<td>~8 GB/month baseline → 20–32 GB/month from February 2026</td>
+</tr>
+<tr>
+<td><code>xmlrpc.php</code> volume</td>
+<td>100,000+ requests over 3 months — brute-force credential attack vector</td>
+</tr>
+<tr>
+<td>Self-modifying PHP files</td>
+<td>PHP files overwriting themselves on disk each request</td>
+</tr>
+<tr>
+<td>Unauthorized SSH account</td>
+<td>Created seconds before known-legitimate accounts, connecting from foreign static IP</td>
+</tr>
+<tr>
+<td><code>httpd</code> memory spike</td>
+<td>23% spike on day of attacker activity vs 0.3% current baseline</td>
+</tr>
+</tbody>
+</table>
+<h3 id="yara-rule">YARA Rule</h3>
+<p>Full YARA rule for the Anonymous Fox shell family in the <a href="../../malware-analysis/2026-06-27-polymorphic-webshell-analysis/#yara-rule">companion Malware Analysis</a>.</p>
 <hr />
 <h2 id="remediation">Remediation</h2>
 <ul>
@@ -1523,6 +1821,25 @@ rule AnonymousFox_PHP_Webshell {
         $pattern = &quot;/usr/bin/pkill -0&quot; base64
     condition:
         $pattern
+}
+</code></pre>
+<h5 id="detect_ushortlinks">Detect_UShortLinks</h5>
+<pre><code class="language-yara">rule Detect_UShortLinks {
+        meta:
+                author = &quot;8iker_4n0n&quot;
+                description = &quot;Find Ushort links in files&quot;
+        strings:
+                $pattern = /ushort\.[a-z]+/ nocase
+
+                $php1 = &quot;&lt;?php&quot; nocase
+                $php2 = &quot;&lt;?=&quot;
+
+                $html1 = &quot;&lt;html&quot; nocase
+                $html2 = &quot;&lt;body&quot; nocase
+                $html3 = &quot;&lt;!DOCTYPE&quot; nocase
+
+        condition:
+                (any of ($php*) or any of ($html*)) and $pattern
 }
 </code></pre>
 <hr />
