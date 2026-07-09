@@ -314,12 +314,76 @@ If anything seen in this blog is incorrect, can be improved or you would like to
 ---
 
 ## Indicators of Compromise
-- Foreign IP connecting to SSH shell
-- 216 polymorphic PHP web shells located across the hosted account web roots.
-- Database content injection: WordPress post rows seeded with redirect payloads pointing to ushort.* domains. Each infected row observed to carry two payload variants — a `<meta http-equiv="refresh"> redirect and a <script>window.location.href>` redirect.
-- Removed injected redirects in 17560 PHP files found on disk via bash script.
-- Injection scale on one account (REDACTED) measured at 818 infected post rows (1,636 total payload strings, i.e. both variants per row).
-- Established connections to port 111 RPC from foreign addresses (Linode instances) 
+
+!!! danger "High Confidence"
+    The regex pattern and redirect domain family are the most reliable cross-environment detections. Attacker IPs are cloud/VPS infrastructure and will rotate.
+
+### Network
+
+| Type | Value | Context |
+|---|---|---|
+| Domain pattern | `ushort\.[a-z]+` | Phishing redirect destination — TLDs observed: `.dev`, `.today`, `.observer`, `.company`, `.com` |
+| Port | `111` (RPC) | Active ESTABLISHED connections to foreign IPs observed on this port |
+| Infrastructure | Linode ASN (multiple IPs) | Attacker C2 relay nodes — see [Attacker IPs](#attacker-ips) |
+| C2 | `https://t.me/F0x_CyberSecurity` | Telegram channel embedded in Anonymous Fox malware dictionary |
+| C2 URL | `https://u-fox.link` | Anonymous Fox panel URL found in malware strings |
+
+### File System
+
+!!! note
+    Hash-based detection is unreliable — the polymorphic shells rewrite themselves on each execution. Use the regex pattern and structural markers instead.
+
+| Type | Value | Context |
+|---|---|---|
+| Regex | `\( __FILE__ \),-[0-9]+` | Detects all variants of the self-referencing payload loader |
+| Path pattern | `/public_html/[a-z]{6,8}/[a-z]{6,8}/[a-z]{6,8}/(index\|shell\|tool).php` | Randomly nested 3-level directories with generic filenames |
+| File | `.htaccess` modified | `AddType text/plain .php` and `Options Indexes FollowSymLinks` injected |
+| File | `php.ini` modified | `safe_mode = Off`, `disable_functions = NONE`, `open_basedir = OFF` injected |
+| Directory | `.F0x/` | Attacker staging directory — see [Attacker Base Directory](#attacker-base-directory) |
+| Marker file | `foxnoindex.htm` / `foxnoindex.html` | Anonymous Fox custom `DirectoryIndex` marker |
+
+??? "Detection Commands"
+    ```bash
+    # Find all shell variants across web roots
+    grep -rnP '\( __FILE__ \),-[0-9]+' --include="*.php" /home/*/public_html/
+
+    # Find corrupted .htaccess files
+    grep -rl "AddType text/plain .php" /home/*/public_html/
+
+    # Find corrupted php.ini files
+    grep -rl "disable_functions = NONE" /home/*/public_html/
+    ```
+
+### Web Application / Database
+
+| Type | Value | Context |
+|---|---|---|
+| DB payload — meta | `<meta http-equiv="refresh" content="0; url=https?://ushort\.[a-z]+/...">` | Injected into `wp_posts.post_content` and `wp_options.home` |
+| DB payload — script | `<script>window.location.href = "https?://ushort\.[a-z]+/...";</script>` | Second variant — both present per infected row |
+| Impact scale | 216 PHP shells · 17,560 infected PHP files · 818+ infected DB rows on one account alone | Scale across 30+ hosted WordPress sites |
+
+??? "Detection Query (WP-CLI)"
+    ```bash
+    # Count infected post rows
+    wp db query "SELECT COUNT(*) FROM wp_posts WHERE post_content LIKE '%ushort.%'" --path=/path/to/wp
+
+    # Check if wp_options home is hijacked
+    wp option get home --path=/path/to/wp
+    ```
+
+### Behavioral
+
+| Signal | Detail |
+|---|---|
+| Bandwidth spike | ~8 GB/month baseline → 20–32 GB/month from February 2026 |
+| `xmlrpc.php` volume | 100,000+ requests over 3 months — brute-force credential attack vector |
+| Self-modifying PHP files | PHP files overwriting themselves on disk each request |
+| Unauthorized SSH account | Created seconds before known-legitimate accounts, connecting from foreign static IP |
+| `httpd` memory spike | 23% spike on day of attacker activity vs 0.3% current baseline |
+
+### YARA Rule
+
+Full YARA rule for the Anonymous Fox shell family in the [companion Malware Analysis](../malware-analysis/2026-06-27-polymorphic-webshell-analysis.md#yara-rule).
 
 ---
 
@@ -481,6 +545,27 @@ rule Detect_GSocket_Webshell {
         $pattern = "/usr/bin/pkill -0" base64
     condition:
         $pattern
+}
+```
+
+##### Detect_UShortLinks
+```yara
+rule Detect_UShortLinks {
+        meta:
+                author = "8iker_4n0n"
+                description = "Find Ushort links in files"
+        strings:
+                $pattern = /ushort\.[a-z]+/ nocase
+
+                $php1 = "<?php" nocase
+                $php2 = "<?="
+
+                $html1 = "<html" nocase
+                $html2 = "<body" nocase
+                $html3 = "<!DOCTYPE" nocase
+
+        condition:
+                (any of ($php*) or any of ($html*)) and $pattern
 }
 ```
 
