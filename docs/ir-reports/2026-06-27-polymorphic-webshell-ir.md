@@ -331,7 +331,7 @@ But wait... there is more to come. In the very near future I will share the addi
 
 ## Indicators of Compromise
 
-!!! danger "High Confidence"
+> danger "High Confidence"
     The regex pattern and redirect domain family are the most reliable cross-environment detections. Attacker IPs are cloud/VPS infrastructure and will rotate.
 
 ### Network
@@ -346,7 +346,7 @@ But wait... there is more to come. In the very near future I will share the addi
 
 ### File System
 
-!!! note
+> note
     Hash-based detection is unreliable — the polymorphic shells rewrite themselves on each execution. Use the regex pattern and structural markers instead.
 
 | Type | Value | Context |
@@ -358,7 +358,7 @@ But wait... there is more to come. In the very near future I will share the addi
 | Directory | `.F0x/` | Attacker staging directory — see [Attacker Base Directory](#attacker-base-directory) |
 | Marker file | `foxnoindex.htm` / `foxnoindex.html` | Anonymous Fox custom `DirectoryIndex` marker |
 
-??? "Detection Commands"
+> "Detection Commands"
     ```bash
     # Find all shell variants across web roots
     grep -rnP '\( __FILE__ \),-[0-9]+' --include="*.php" /home/*/public_html/
@@ -378,7 +378,7 @@ But wait... there is more to come. In the very near future I will share the addi
 | DB payload — script | `<script>window.location.href = "https?://ushort\.[a-z]+/...";</script>` | Second variant — both present per infected row |
 | Impact scale | 216 PHP shells · 17,560 infected PHP files · 818+ infected DB rows on one account alone | Scale across 30+ hosted WordPress sites |
 
-??? "Detection Query (WP-CLI)"
+> "Detection Query (WP-CLI)"
     ```bash
     # Count infected post rows
     wp db query "SELECT COUNT(*) FROM wp_posts WHERE post_content LIKE '%ushort.%'" --path=/path/to/wp
@@ -396,10 +396,6 @@ But wait... there is more to come. In the very near future I will share the addi
 | Self-modifying PHP files | PHP files overwriting themselves on disk each request |
 | Unauthorized SSH account | Created seconds before known-legitimate accounts, connecting from foreign static IP |
 | `httpd` memory spike | 23% spike on day of attacker activity vs 0.3% current baseline |
-
-### YARA Rule
-
-Full YARA rule for the Anonymous Fox shell family in the [companion Malware Analysis](../malware-analysis/2026-06-27-polymorphic-webshell-analysis.md#yara-rule).
 
 ---
 
