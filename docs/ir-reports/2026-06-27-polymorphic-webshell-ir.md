@@ -80,7 +80,7 @@ The investigation prioritised, in order: evidence preservation, assessment of li
 Shout out to the following researchers who's content made this possible:  
 **John Strand, Low Level, Hack The Clown, John Hammond, Nahamsec, Tomnomnom**
 
-!!! Disclaimer: Both **Gemini 3.1 Pro** and **Claude Opus 4.8** were used to assist me in the investigation. The AI models were used to help me with research on discoveries made and to support me with additional commands I used to discover anomalies. 
+>[!info] Disclaimer: Both **Gemini 3.1 Pro** and **Claude Opus 4.8** were used to assist me in the investigation. The AI models were used to help me with research on discoveries made and to support me with additional commands I used to discover anomalies. 
 
 > See the companion [Malware Analysis](../malware-analysis/2026-06-27-polymorphic-webshell-analysis.md) for breakdown of the shell's obfuscation and polymorphism mechanisms.
 
