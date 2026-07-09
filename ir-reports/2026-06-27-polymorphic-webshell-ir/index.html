@@ -615,17 +615,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#yara-rule" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        YARA Rule
-      
-    </span>
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -1055,17 +1044,6 @@
     <span class="md-ellipsis">
       
         Behavioral
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#yara-rule" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        YARA Rule
       
     </span>
   </a>
@@ -1541,8 +1519,10 @@ done
 </table>
 <hr />
 <h2 id="indicators-of-compromise">Indicators of Compromise</h2>
-<p>!!! danger "High Confidence"
+<blockquote>
+<p>danger "High Confidence"
     The regex pattern and redirect domain family are the most reliable cross-environment detections. Attacker IPs are cloud/VPS infrastructure and will rotate.</p>
+</blockquote>
 <h3 id="network">Network</h3>
 <table>
 <thead>
@@ -1581,8 +1561,10 @@ done
 </tbody>
 </table>
 <h3 id="file-system">File System</h3>
-<p>!!! note
+<blockquote>
+<p>note
     Hash-based detection is unreliable — the polymorphic shells rewrite themselves on each execution. Use the regex pattern and structural markers instead.</p>
+</blockquote>
 <table>
 <thead>
 <tr>
@@ -1624,10 +1606,12 @@ done
 </tr>
 </tbody>
 </table>
-<p>??? "Detection Commands"
+<blockquote>
+<p>"Detection Commands"
     ```bash
     # Find all shell variants across web roots
     grep -rnP '( <strong>FILE</strong> ),-[0-9]+' --include="<em>.php" /home/</em>/public_html/</p>
+</blockquote>
 <pre><code># Find corrupted .htaccess files
 grep -rl "AddType text/plain .php" /home/*/public_html/
 
@@ -1662,10 +1646,12 @@ grep -rl "disable_functions = NONE" /home/*/public_html/
 </tr>
 </tbody>
 </table>
-<p>??? "Detection Query (WP-CLI)"
+<blockquote>
+<p>"Detection Query (WP-CLI)"
     ```bash
     # Count infected post rows
     wp db query "SELECT COUNT(*) FROM wp_posts WHERE post_content LIKE '%ushort.%'" --path=/path/to/wp</p>
+</blockquote>
 <pre><code># Check if wp_options home is hijacked
 wp option get home --path=/path/to/wp
 ```
@@ -1701,8 +1687,6 @@ wp option get home --path=/path/to/wp
 </tr>
 </tbody>
 </table>
-<h3 id="yara-rule">YARA Rule</h3>
-<p>Full YARA rule for the Anonymous Fox shell family in the <a href="../../malware-analysis/2026-06-27-polymorphic-webshell-analysis/#yara-rule">companion Malware Analysis</a>.</p>
 <hr />
 <h2 id="remediation">Remediation</h2>
 <ul>
