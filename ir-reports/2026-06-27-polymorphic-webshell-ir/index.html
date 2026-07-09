@@ -450,6 +450,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#log-analysis" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -498,17 +509,6 @@
     <span class="md-ellipsis">
       
         End of the First Day...
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#environment" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Environment
       
     </span>
   </a>
@@ -885,6 +885,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#log-analysis" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -933,17 +944,6 @@
     <span class="md-ellipsis">
       
         End of the First Day...
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#environment" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Environment
       
     </span>
   </a>
@@ -1212,6 +1212,30 @@ I state this as the patterns and languages varied amongst the samples I found.</
 <p>The client contacted me, explaining that his server (which I had not seen before) had been 'hacked'. This server hosts about 30 different wordpress websites and upon loading certain features, the user would be redirected to <code>https://ushort.dev</code> and other similar URLs.  </p>
 <p>I intentionally left out some parts of this investigation to prevent a bloated blog. But one of the early actions I took when accessing the server via SSH was to grep for the <code>ushort</code> string in the webroot of one of the affected sites to see what files come up. This only reveal temporary logs from cPanel based on actions already taken by the user which is what lead me to take a different approach.</p>
 <hr />
+<h2 id="environment">Environment</h2>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Operating System</td>
+<td>AlmaLinux 9.8 (Olive Jaguar)</td>
+</tr>
+<tr>
+<td>Hosting Model</td>
+<td>Shared hosting, multiple cPanel accounts</td>
+</tr>
+<tr>
+<td>Application</td>
+<td>WordPress (mixed cored and plugin versions across sites)</td>
+</tr>
+</tbody>
+</table>
+<hr />
 <h2 id="log-analysis">Log analysis</h2>
 <p>The WHM management interface allowed me to view active processes and network logs. The active processes and first view logs did not reveal anything. When looking through the <code>Daily Process Log</code> in WHM, I saw a sudden spike (23%) in the previous day's (June 18 2026) memory usage. This memory usage came from the <code>httpd</code> process. Now 23% is not much for a web server but when compared to the current day (0.3%) it seemed very odd.</p>
 <p>I then looked at the bandwidth usage for each month by site. This then revealed a massive amount of data usage for about 7 sites. As the sites are not hosting video content or image downloads, this seemed strange so I jumped back many months until I saw a drop in bandwidth usage. I discovered that prior to February 2026, the average bandwidth usage was between <strong>7GB</strong> to <strong>9GB</strong> but in February there was an additional 20GB. Looking through the other months, the maximum usage for one particular site was <strong>32.26GB</strong>.</p>
@@ -1336,30 +1360,6 @@ done
 <h2 id="end-of-the-first-day">End of the First Day...</h2>
 <p>At this point it was about 4AM and had to get ready for my day job. I compiled my hours, findings and report and sent it to the client. I did not include all the details of the entire investigation but tried to give the highlights of the juicy bits. Hopefully this helps others to find the IOCs and stop any future or existing compromises.  </p>
 <p>But wait... there is more to come. In the very near future I will share the additional days of this investigation.</p>
-<hr />
-<h2 id="environment">Environment</h2>
-<table>
-<thead>
-<tr>
-<th>Item</th>
-<th>Detail</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Operating System</td>
-<td>AlmaLinux 9.8 (Olive Jaguar)</td>
-</tr>
-<tr>
-<td>Hosting Model</td>
-<td>Shared hosting, multiple cPanel accounts</td>
-</tr>
-<tr>
-<td>Application</td>
-<td>WordPress (mixed cored and plugin versions across sites)</td>
-</tr>
-</tbody>
-</table>
 <hr />
 <h2 id="malicious-scripts-truncated-list">Malicious Scripts (Truncated List)</h2>
 <ul>
