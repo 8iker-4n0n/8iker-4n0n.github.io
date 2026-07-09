@@ -1213,12 +1213,12 @@ A shared-hosting web server managed via cPanel/WHM, hosting multiple WordPress s
 All connections to the compromised server was done through my own private VPN connection to hide my own public IP address as an extra precaution. 
 I intentionally excluded some discoveries from this write-up for brevity, but I will share the most interesting ones. </p>
 <p>Some of the findings include:<br />
-- Polymorphic instances of Anonymous Fox suite<br />
-- GSocket RAT (Remote Access Trojan) binary<br />
-- Corrupted php.ini files<br />
-- Corrupted .htaccess files<br />
-- Web Shells with GET parameters for shell execution<br />
-- Emails sent by the attackers through the mail server  </p>
+  - Polymorphic instances of Anonymous Fox suite<br />
+  - GSocket RAT (Remote Access Trojan) binary<br />
+  - Corrupted php.ini files<br />
+  - Corrupted .htaccess files<br />
+  - Web Shells with GET parameters for shell execution<br />
+  - Emails sent by the attackers through the mail server  </p>
 <p>Although the most interesting malware I found was the polymorphic Anonymous Fox instances, I did also find a lot of other malware.
 Honestly, it looked like this web server was compromised by more than one group of attackers.
 I state this as the patterns and languages varied amongst the samples I found.</p>
@@ -1227,7 +1227,7 @@ I state this as the patterns and languages varied amongst the samples I found.</
 <strong>John Strand, Low Level, Hack The Clown, John Hammond, Nahamsec, Tomnomnom</strong></p>
 <blockquote>
 <p>[!info] Disclaimer: Both <strong>Gemini 3.1 Pro</strong> and <strong>Claude Opus 4.8</strong> were used to assist me in the investigation. The AI models were used to help me with research on discoveries made and to support me with additional commands I used to discover anomalies. </p>
-<p>See the companion <a href="../../malware-analysis/2026-06-27-polymorphic-webshell-analysis/">Malware Analysis</a> for breakdown of the shell's obfuscation and polymorphism mechanisms.</p>
+<p>See the companion <a href="../../malware-analysis/2026-06-27-polymorphic-webshell-analysis/">Malware Analysis</a> for breakdown of the shell's obfuscation mechanisms.</p>
 </blockquote>
 <hr />
 <h2 id="introduction">Introduction</h2>
