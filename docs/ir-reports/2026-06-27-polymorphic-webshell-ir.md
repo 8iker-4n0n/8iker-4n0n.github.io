@@ -341,7 +341,7 @@ But wait... there is more to come. In the very near future I will share the addi
 
 ## Indicators of Compromise
 
-> danger "High Confidence"
+> Danger - High Confidence
     The regex pattern and redirect domain family are the most reliable cross-environment detections. Attacker IPs are cloud/VPS infrastructure and will rotate.
 
 ### Network
@@ -356,7 +356,7 @@ But wait... there is more to come. In the very near future I will share the addi
 
 ### File System
 
-> note
+> Note
     Hash-based detection is unreliable — the polymorphic shells rewrite themselves on each execution. Use the regex pattern and structural markers instead.
 
 | Type | Value | Context |
@@ -418,7 +418,7 @@ But wait... there is more to come. In the very near future I will share the addi
 - Changing of all passwords for user accounts, databases and administrative accounts
 - Disabled C Compiler access - this was enabled for unpriviledged users - WHM setting
 - Shell fork bomb protection enabled - WHM setting
-- Wrote custom YARA rule
+- Wrote custom YARA rules
 
 ### Commands Used
 ```bash
