@@ -93,6 +93,15 @@ I intentionally left out some parts of this investigation to prevent a bloated b
 
 ---
 
+## Environment
+| Item | Detail |
+|---|---|
+| Operating System | AlmaLinux 9.8 (Olive Jaguar) |
+| Hosting Model | Shared hosting, multiple cPanel accounts |
+| Application | WordPress (mixed cored and plugin versions across sites)
+
+---
+
 ## Log analysis
 The WHM management interface allowed me to view active processes and network logs. The active processes and first view logs did not reveal anything. When looking through the `Daily Process Log` in WHM, I saw a sudden spike (23%) in the previous day's (June 18 2026) memory usage. This memory usage came from the `httpd` process. Now 23% is not much for a web server but when compared to the current day (0.3%) it seemed very odd.
 
@@ -241,15 +250,6 @@ done
 At this point it was about 4AM and had to get ready for my day job. I compiled my hours, findings and report and sent it to the client. I did not include all the details of the entire investigation but tried to give the highlights of the juicy bits. Hopefully this helps others to find the IOCs and stop any future or existing compromises.  
 
 But wait... there is more to come. In the very near future I will share the additional days of this investigation.
-
----
-
-## Environment
-| Item | Detail |
-|---|---|
-| Operating System | AlmaLinux 9.8 (Olive Jaguar) |
-| Hosting Model | Shared hosting, multiple cPanel accounts |
-| Application | WordPress (mixed cored and plugin versions across sites)
 
 ---
 
