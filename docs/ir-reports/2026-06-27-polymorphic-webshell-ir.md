@@ -59,17 +59,17 @@ tags:
 The following report is a condensed write-up regarding an incident response on a compromised server I was tasked with securing after the fact.
 A shared-hosting web server managed via cPanel/WHM, hosting multiple WordPress sites across several accounts, was identified as compromised. Indicators point to a multi-account breach involving server-side web shells and large-scale content injection.  
 
-The malware found was not detected by using any AV scans or security plugins, but through manual investigation and regex. 
-All connections to the compromised server was done through my own private VPN connection to hide my own public IP address. 
-I intentionally excluded some discoveries from this write-up for brevity, this write-up but I will share the most interesting ones. 
+The malware found was not detected by using any AV scans or security plugins, but through manual investigation, regex patterns and YARA rules. 
+All connections to the compromised server was done through my own private VPN connection to hide my own public IP address as an extra precaution. 
+I intentionally excluded some discoveries from this write-up for brevity, but I will share the most interesting ones. 
 
-Some of the findings include:
-- Polymorphic instances of Anonymous Fox suite
-- GSocket RAT (Remote Access Trojan) binary
-- Corrupted php.ini files
-- Corrupted .htaccess files
-- Web Shells with GET parameters for shell execution
-- Emails sent by the attackers through the mail server
+Some of the findings include:  
+- Polymorphic instances of Anonymous Fox suite  
+- GSocket RAT (Remote Access Trojan) binary  
+- Corrupted php.ini files  
+- Corrupted .htaccess files  
+- Web Shells with GET parameters for shell execution  
+- Emails sent by the attackers through the mail server  
 
 Although the most interesting malware I found was the polymorphic Anonymous Fox instances, I did also find a lot of other malware.
 Honestly, it looked like this web server was compromised by more than one group of attackers.
