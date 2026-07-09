@@ -1023,11 +1023,14 @@
 A shared-hosting web server managed via cPanel/WHM, hosting multiple WordPress sites across several accounts, was identified as compromised. Indicators point to a multi-account breach involving server-side web shells and large-scale content injection.  </p>
 <p>The malware found was not detected by using any AV scans or security plugins, but through manual investigation and regex. 
 All connections to the compromised server was done through my own private VPN connection to hide my own public IP address. 
-I intentionally exclude some discoveries from this write-up but I will share the most interesting ones. </p>
+I intentionally excluded some discoveries from this write-up for brevity, this write-up but I will share the most interesting ones. </p>
 <p>Some of the findings include:
 - Polymorphic instances of Anonymous Fox suite
-- GSocket RAT (Remote Access Trojan)
-- </p>
+- GSocket RAT (Remote Access Trojan) binary
+- Corrupted php.ini files
+- Corrupted .htaccess files
+- Web Shells with GET parameters for shell execution
+- Emails sent by the attackers through the mail server</p>
 <p>Although the most interesting malware I found was the polymorphic Anonymous Fox instances, I did also find a lot of other malware.
 Honestly, it looked like this web server was compromised by more than one group of attackers.
 I state this as the patterns and languages varied amongst the samples I found.</p>
@@ -1045,8 +1048,8 @@ I state this as the patterns and languages varied amongst the samples I found.</
 <hr />
 <h2 id="log-analysis">Log analysis</h2>
 <p>The WHM management interface allowed me to view active processes and network logs. The active processes and first view logs did not reveal anything. When looking through the <code>Daily Process Log</code> in WHM, I saw a sudden spike (23%) in the previous day's (June 18 2026) memory usage. This memory usage came from the <code>httpd</code> process. Now 23% is not much for a web server but when compared to the current day (0.3%) it seemed very odd.</p>
-<p>I then looked at the bandwidth usage for each month by site. This then revealed a massive amount of data usage for about 7 sites. As the sites are not hosting video content or image downloads, this seemed strange so I jumped back many months until I saw a drop in bandwidth usage. I discovered that prior to February 2026, the average bandwidth usage was between <strong>7GB</strong> to <strong>9GB</strong> but in Feburary there was an additional 20GB. Looking through the other months, the maximum usage for one particular site was <strong>32.26GB</strong>.</p>
-<p>Upon further investigation, I found that the most targeted file in the requests sent was <code>xmlrpc.php</code>, about 100,000+ requests within a 3 month span. I remember from the past this this was a vulnerable file in the past. I did a quick search and discovered that this legacy file has been used in past exploits to brute force user accounts. This is what I believe was used to brute-force user accounts and gain access to file upload capabilities through an administrator account.</p>
+<p>I then looked at the bandwidth usage for each month by site. This then revealed a massive amount of data usage for about 7 sites. As the sites are not hosting video content or image downloads, this seemed strange so I jumped back many months until I saw a drop in bandwidth usage. I discovered that prior to February 2026, the average bandwidth usage was between <strong>7GB</strong> to <strong>9GB</strong> but in February there was an additional 20GB. Looking through the other months, the maximum usage for one particular site was <strong>32.26GB</strong>.</p>
+<p>Upon further investigation, I found that the most targeted file in the requests sent was <code>xmlrpc.php</code>, about 100,000+ requests within a 3 month span. I remember from the past that this was a known vulnerable file. I did a quick search and discovered that this legacy file has been used in past exploits to brute force user accounts. This is what I believe was used to brute-force user accounts and gain access to file upload capabilities through an administrator account.</p>
 <hr />
 <h2 id="looking-for-established-connections-and-odd-user-accounts">Looking For Established Connections and Odd User Accounts</h2>
 <p>Before continuing, I told myself not to underestimate the attackers and be sure of my next actions. The next thing I was using the <code>Terminal</code> function in WHM to get a root shell. I then ran the following commands to check for strange user accounts.</p>
@@ -1311,6 +1314,30 @@ done
 <td>System Network Configuration Discovery</td>
 <td>Identified listening services and established connections</td>
 </tr>
+<tr>
+<td>Discovery</td>
+<td>T1018</td>
+<td>Remote System Discovery</td>
+<td>DNS zone enumeration via <code>/etc/named.conf</code> mapped all domains on shared host</td>
+</tr>
+<tr>
+<td>Credential Access</td>
+<td>T1552.001</td>
+<td>Unsecured Credentials: Credentials In Files</td>
+<td>Malware harvested DB credentials from CMS config files across accounts</td>
+</tr>
+<tr>
+<td>Command and Control</td>
+<td>T1219</td>
+<td>Remote Access Software</td>
+<td>GSocket RAT binary dropped for persistent remote access</td>
+</tr>
+<tr>
+<td>Command and Control</td>
+<td>T1105</td>
+<td>Ingress Tool Transfer</td>
+<td>GSocket RAT binary transferred to compromised host filesystem</td>
+</tr>
 </tbody>
 </table>
 <hr />
@@ -1398,6 +1425,10 @@ I built my own YARA rule for what I found because I didn't yet find anything for
 <li><a href="https://attack.mitre.org/techniques/T1095/">MITRE T1095 — Non-Application Layer Protocol</a></li>
 <li><a href="https://attack.mitre.org/techniques/T1571/">MITRE T1571 — Non-Standard Port</a></li>
 <li><a href="https://attack.mitre.org/techniques/T1070/004/">MITRE T1070.004 — Indicator Removal: File Deletion</a></li>
+<li><a href="https://attack.mitre.org/techniques/T1552/001/">MITRE T1552.001 — Unsecured Credentials: Credentials In Files</a></li>
+<li><a href="https://attack.mitre.org/techniques/T1018/">MITRE T1018 — Remote System Discovery</a></li>
+<li><a href="https://attack.mitre.org/techniques/T1219/">MITRE T1219 — Remote Access Software</a></li>
+<li><a href="https://attack.mitre.org/techniques/T1105/">MITRE T1105 — Ingress Tool Transfer</a></li>
 <li><a href="../../malware-analysis/2026-06-27-polymorphic-webshell-analysis/">Companion Malware Analysis</a></li>
 </ul>
 
