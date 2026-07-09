@@ -64,12 +64,12 @@ All connections to the compromised server was done through my own private VPN co
 I intentionally excluded some discoveries from this write-up for brevity, but I will share the most interesting ones. 
 
 Some of the findings include:  
-- Polymorphic instances of Anonymous Fox suite  
-- GSocket RAT (Remote Access Trojan) binary  
-- Corrupted php.ini files  
-- Corrupted .htaccess files  
-- Web Shells with GET parameters for shell execution  
-- Emails sent by the attackers through the mail server  
+  - Polymorphic instances of Anonymous Fox suite  
+  - GSocket RAT (Remote Access Trojan) binary  
+  - Corrupted php.ini files  
+  - Corrupted .htaccess files  
+  - Web Shells with GET parameters for shell execution  
+  - Emails sent by the attackers through the mail server  
 
 Although the most interesting malware I found was the polymorphic Anonymous Fox instances, I did also find a lot of other malware.
 Honestly, it looked like this web server was compromised by more than one group of attackers.
@@ -82,7 +82,7 @@ Shout out to the following researchers who's content made this possible:
 
 >[!info] Disclaimer: Both **Gemini 3.1 Pro** and **Claude Opus 4.8** were used to assist me in the investigation. The AI models were used to help me with research on discoveries made and to support me with additional commands I used to discover anomalies. 
 
-> See the companion [Malware Analysis](../malware-analysis/2026-06-27-polymorphic-webshell-analysis.md) for breakdown of the shell's obfuscation and polymorphism mechanisms.
+> See the companion [Malware Analysis](../malware-analysis/2026-06-27-polymorphic-webshell-analysis.md) for breakdown of the shell's obfuscation mechanisms.
 
 ---
 
