@@ -583,6 +583,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#commands-used" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Commands Used
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#custom-yara-rules-using-yara-x" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -933,6 +944,17 @@
   
     <nav class="md-nav" aria-label="Remediation">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#commands-used" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Commands Used
+      
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#custom-yara-rules-using-yara-x" class="md-nav__link">
@@ -1360,8 +1382,86 @@ done
 <li>Changing of all passwords for user accounts, databases and administrative accounts</li>
 <li>Disabled C Compiler access - this was enabled for unpriviledged users - WHM setting</li>
 <li>Shell fork bomb protection enabled - WHM setting</li>
-<li>Wrote a custom YARA rule</li>
+<li>Wrote custom YARA rule</li>
 </ul>
+<h3 id="commands-used">Commands Used</h3>
+<pre><code class="language-bash"># These were used to find the web shell - I found 216 malicious scripts with this same pattern scattered through out all the server accounts
+grep -rnP '\( __FILE__ \),-[0-9]+' --include=&quot;*.php&quot; /home/*/public_html/
+grep -rnP --binary-files=text '\( __FILE__ \),-[0-9]+' --include=&quot;*.php&quot; /home/*/public_html/
+
+# Find files that used the same obfuscated PHP concatenation pattern
+grep -rnP &quot;\\\$[A-Za-z0-9_]{1,32}\s*=\s*('[A-Za-z0-9_]+'\s*\.\s*){1,}'[A-Za-z0-9_]+'\s*;&quot; --include=&quot;*.php&quot; /home/*/public_html/
+grep -rnP &quot;\\\$[A-Za-z0-9_]{1,32}\s*=\s*('[A-Za-z0-9_]+'\s*\.\s*){1,}'[A-Za-z0-9_]+'\s*;&quot; --include=&quot;*.php&quot; /
+
+# Look for any suspicious shell sessions and from which IP they originate 
+last
+
+# Find world writable directories on the system - possible places to find foreign files
+find / -xdev -perm /1000 -type d
+# Find executable files within the world writable directories
+find /dev/shm /tmp/ /var/tmp -type f -executable
+# Find immutable files - Attackers like to try and prevent their scripts to be deleted
+find / -type f -exec lsattr {} \; 2&gt;/dev/null | grep -- '-i-'
+
+# Look for orphaned files - There were some files that attempted to look like kernal processes
+# Remember that most of these files may be legit, but look for anything that stands out
+lsof +L1
+lsof +L1 | grep -vE &quot;shm|memfd&quot;
+lsof | grep del | grep -Ev 'tmp|memfd'
+lsof | grep del | grep -Ev 'tmp|memfd|/run/'
+# Recover an orphaned file - not always FD 4 but have a look
+cp /proc/PID/fd/4 /tmp/recovered_file
+cat /tmp/recovered_file
+
+# Looks for user space executables that appear to be a kernel space process
+for p in /proc/[0-9]*; do 
+    name=$(tr -d '\0' &lt; &quot;$p/comm&quot; 2&gt;/dev/null) 
+    exe=$(readlink &quot;$p/exe&quot; 2&gt;/dev/null) 
+    if [[ &quot;$name&quot; == \[* &amp;&amp; -n &quot;$exe&quot; ]]; then 
+    echo &quot;IMPOSTOR: pid=${p#/proc/} comm=$name exe=$exe uid=$(awk '/^Uid:/{print $2}' $p/status)&quot; 
+    fi 
+done
+
+# Find files modified since the date provided
+# The ctime is an important flag to set as (to my knowledge) an attacker can't change the actual birth time of the file 
+find /home /var/www -type f -name '*.ph*' -newerct '2026-06-01' -printf '%c %p\n' 2&gt;/dev/null | sort
+
+# Look at the birth, access, modify and change timestamps on a file
+stat /path/to/file
+
+# Look for unusual files with the SUID bit set
+find / -uid 0 –perm -4000 –print
+# Look for files with dots and spaces in the name (found quiet a few)
+find / -name &quot; &quot; –print
+find / -name &quot;.. &quot; –print
+find / -name &quot;. &quot; –print
+find / -name &quot; &quot; –print
+
+# Yara classic and Yara-X commands when I built my own custom rules for this environment
+yara -r scan RULE_FILE /home
+yara -r scan RULE_FILE /home | tee -a ./files_to_check
+
+yr scan -r RULE_FILE /home
+yr scan -r RULE_FILE /home | tee -a ./files_to_check
+
+# Use the package manager to do a package integrity check
+rpm –Va | sort
+
+# Look for any unusual network connections
+lsof -i -P
+lsof -p PID
+# Look for any unusual parent and child processes
+ps auxf
+# Look for unusual arp resolutions
+arp -a
+
+# Check system-wide cron jobs
+cat /etc/crontab
+ls /etc/cron.*
+
+# Find all user accounts with shell access
+cat /etc/passwd | grep -vE &quot;nologin|false|sync&quot;
+</code></pre>
 <h3 id="custom-yara-rules-using-yara-x">Custom YARA Rules (Using Yara-X)</h3>
 <p>Should someone be able to improve on the YARA rules below, please let me know.
 I built my own YARA rule for what I found because I didn't yet find anything for Anonymous Fox, but if there is something, again let me know.</p>
@@ -1386,6 +1486,21 @@ I built my own YARA rule for what I found because I didn't yet find anything for
         $zlib2 in (@pattern..@pattern + 1000) or
         $zlib3 in (@pattern..@pattern + 1000)
 }
+
+rule AnonymousFox_PHP_Webshell {
+    meta:
+        description = &quot;Detects Anonymous Fox polymorphic PHP web shell family&quot;
+        author      = &quot;8iker_4n0n&quot;
+        date        = &quot;2026-06-27&quot;
+    strings:
+        $self_ref     = /\(\s*__FILE__\s*\),\s*-[0-9]+/ ascii
+        $str_corrupt  = /str_replace\('[a-z]{10}','[&lt;&gt;]'/ ascii
+        $disable_log  = &quot;ini_set('error_log', NULL)&quot; ascii
+        $gz_chain     = /gzu(ncompress|inflate)\s*\(/ ascii
+        $error_off    = &quot;error_reporting(0)&quot; ascii
+    condition:
+        $self_ref and $str_corrupt and 2 of ($disable_log, $gz_chain, $error_off)
+}
 </code></pre>
 <h5 id="detect_obfuscatedcodephp">Detect_ObfuscatedCodePHP</h5>
 <pre><code class="language-yara">rule Detect_ObfuscatedCode {
@@ -1393,7 +1508,7 @@ I built my own YARA rule for what I found because I didn't yet find anything for
         author      = &quot;8iker_4n0n&quot;
         description = &quot;Find common concatenation obfuscated code&quot;
     strings:
-        $pattern = /\$[A-Za-z0-9_]{1,32}\s*=\s*('[A-Za-z0-9_]+'\s*\.\s*){1,}'[A-Za-z0-9_]+'\s*/
+        $pattern = /\$[A-Za-z0-9_]{1,32}\s*=\s*('[A-Za-z0-9_]+'\s*\.\s*){1,}'[A-Za-z0-9_]+'\s*/ ascii
     condition:
         $pattern
 }
